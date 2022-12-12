@@ -2,7 +2,8 @@
 #include <cmath>
 #include <vector>
 #include <cstdlib>
-
+#include <ctime>
+#include <random>
 
 using namespace std;
 
@@ -10,13 +11,13 @@ template <typename Type>
 struct Node {
     int key, degree;
     Node<Type> *parent, *child, *left, *right;
-    bool mark;
+    bool mark, checked;
 
     Node(Type value) {
         parent = left = child = right = nullptr;
         degree = 0;
         key = value;
-        mark = false;
+        checked = mark = false;
     }
 };
 
@@ -200,9 +201,11 @@ public:
 vector<Node<int>*> create_random_elements(int n) {
     // Function that creates vector with N elements in range [0,99];
 
+    default_random_engine defEngine(time(0));
+    uniform_int_distribution<int> intDistro(0,100);
     vector<Node<int>*> elements;
     for (int i = 0; i < n; i++) {
-        auto help = new Node<int>(rand()%100);
+        auto help = new Node<int>(intDistro(defEngine));
         elements.emplace_back(help);
     }
 
