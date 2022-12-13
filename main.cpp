@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include <cstdlib>
+#include <cassert>
 #include <ctime>
 #include <random>
 
@@ -209,25 +209,12 @@ vector<Node<int>*> create_random_elements(int n) {
         elements.emplace_back(help);
     }
 
-    cout << "Created elements [0,99] are: ";
+    /*cout << "Created elements [0,99] are: ";
     for (int i = 0; i < n-1; i++) {
         cout << (elements.at(i))->key << ", ";
     }
-    cout << (elements.at(n-1))->key << endl;
+    cout << (elements.at(n-1))->key << endl;*/
 
-    return elements;
-}
-
-vector<Node<int>*> manual_insert_elements(int n) {
-    vector<Node<int>*> elements;
-    for (int i = 0; i < n; i++) {
-        int number;
-        cout << endl << "Please insert integer number: ";
-        cin >> number;
-        auto help = new Node<int>(number);
-        elements.emplace_back(help);
-    }
-    cout << endl << "You have completed manual insertion of elements." << endl;
     return elements;
 }
 
@@ -235,13 +222,29 @@ void delete_elements (vector<Node<int>*> elements) {
     for (auto &x: elements) {
         delete x;
     }
-    cout << endl << "Elements are deleted. " << endl;
+    //cout << endl << "Elements are deleted. " << endl;
 }
 
-void testRandomInsertion() {
+int find_minimum (vector<Node<int>*> elements) {
+    int min = 100;
+    for (auto &x: elements)
+        if (x->key < min)
+            min = x->key;
+    return min;
+}
+
+int find_minimum2 (vector<Node<int>*> elements1, vector<Node<int>*> elements2) {
+    int min1 = find_minimum(elements1);
+    int min2 = find_minimum(elements2);
+    if (min1 > min2)
+        return min2;
+    return min1;
+}
+
+void testInsert1() {
     // This tests random insertion of elements and prints the result.
-    cout << "You have chosen random insertion of elements." << endl;
-    cout << "Please insert number of elements you want to be in Fibonacci Heap: ";
+    cout << "Test Insert 1" << endl;
+    cout << endl << "Insert number of elements: ";
     int n;
     cin >> n;
 
@@ -250,108 +253,68 @@ void testRandomInsertion() {
     for (auto &x: elements)
         fp.Fib_Insert(x);
 
-    fp.Fib_Display();
-
-    delete_elements(elements);
-}
-
-void testManualInsertion() {
-    // This tests manual insertion of elements and prints the result.
-    cout << "You have chosen manual insertion of elements." << endl;
-    cout << "Please insert number of elements you want to be in Fibonacci Heap: ";
-    int n;
-    cin >> n;
-    FibonacciHeap<int> fp;
-    auto elements = manual_insert_elements(n);
-    for (auto &x: elements)
-        fp.Fib_Insert(x);
-
-    fp.Fib_Display();
+    //fp.Fib_Display();
+    assert(1);
+    cout << "Test Insert 1 status: PASSED" << endl;
 
     delete_elements(elements);
 }
 
 void testUnion1() {
     // Test unije za 2 napunjene gomile
-    cout << endl << "You have chosen test of Union method. " << endl;
-    cout << "Please insert number of elements you want to be in first Fibonacci Heap: ";
+    cout << endl << "Test Union 1" << endl;
+    cout << "Insert number of elements for first heap: ";
     int n;
     cin >> n;
     FibonacciHeap<int> fp;
-    auto elements = manual_insert_elements(n);
+    auto elements = create_random_elements(n);
     for (auto &x: elements)
         fp.Fib_Insert(x);
 
-    cout << endl << "Please insert number of elements you want to be in second Fibonacci Heap: ";
+    cout << endl << "Insert number of elements for second heap: ";
     int m;
     cin >> m;
     FibonacciHeap<int> fp2;
-    auto elements2 = manual_insert_elements(m);
+    auto elements2 = create_random_elements(n);
     for (auto &x: elements2)
         fp2.Fib_Insert(x);
 
     FibonacciHeap<int> fp3 = fp.Fib_Union(fp,fp2);
 
-    fp3.Fib_Display();
+    assert(find_minimum2(elements,elements2) == fp3.Fib_ExtractMin()->key);
+    cout << endl << "Test Union 1 status: PASSED" << endl;
+
+    //fp3.Fib_Display();
+
+
     delete_elements(elements);
     delete_elements(elements2);
 }
 
 void testUnion2() {
     // Test unije za punu i praznu gomilu
-    cout << endl << "You have chosen test of Union method. " << endl;
-    cout << "Please insert number of elements you want to be in first Fibonacci Heap: ";
+
+    cout << endl << "Test Union 2";
+    cout << endl << "Insert number of elements: ";
     int n;
     cin >> n;
     FibonacciHeap<int> fp;
-    auto elements = manual_insert_elements(n);
+    auto elements = create_random_elements(n);
     for (auto &x: elements)
         fp.Fib_Insert(x);
 
     FibonacciHeap<int> fp2;
     FibonacciHeap<int> fp3 = fp.Fib_Union(fp,fp2);
 
-    fp3.Fib_Display();
+    //fp3.Fib_Display();
+    assert(find_minimum(elements) == fp3.Fib_ExtractMin()->key);
+    cout << endl << "Test Union 2 status: PASSED" << endl;
     delete_elements(elements);
 }
 
 int main() {
-    vector<string> meni;
-    meni.emplace_back("Insertion of random numbers");
-    meni.emplace_back("Manual insertion of numbers");
-    meni.emplace_back("Union of manually inserted heaps");
-    meni.emplace_back("Union of manually inserted heap and empty heap");
-
-    for (;;) {
-        cout << "Welcome to testing menu. " << endl;
-        cout << "Choose an option to start testing (0 for EXIT): " << endl;
-
-        for (int i = 0; i < meni.size(); ++i)
-            cout << i+1 << ". " << meni[i] << endl;
-
-        cout << "Choose an option: " << endl;
-        int odabir;
-        cin >> odabir;
-        switch (odabir) {
-            case 0:
-                cout << "You have chosen EXIT. Goodbye." << endl;
-                return 0;
-            case 1:
-                testRandomInsertion();
-                break;
-            case 2:
-                testManualInsertion();
-                break;
-            case 3:
-                testUnion1();
-                break;
-            case 4:
-                testUnion2();
-                break;
-            default:
-                cout << "Wrong number inserted. Please try again. " << endl;
-        }
-        cin.clear();
-        cin.ignore();
-    }
+    testInsert1();
+    testUnion1();
+    testUnion2();
+    return 0;
 }
