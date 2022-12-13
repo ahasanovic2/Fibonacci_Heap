@@ -237,6 +237,7 @@ public:
 
         if (found->key < k) {
             cout << "Entered key greater than current key." << endl;
+            return;
         }
 
         found->key = k;
@@ -294,7 +295,7 @@ public:
 vector<Node<int>*> create_random_elements(int n) {
     // Function that creates vector with N elements in range [0,99];
 
-    default_random_engine defEngine(time(0));
+    default_random_engine defEngine(time(nullptr));
     uniform_int_distribution<int> intDistro(0,100);
     vector<Node<int>*> elements;
     for (int i = 0; i < n; i++) {
@@ -311,14 +312,14 @@ vector<Node<int>*> create_random_elements(int n) {
     return elements;
 }
 
-void delete_elements (vector<Node<int>*> elements) {
+void delete_elements (const vector<Node<int>*>& elements) {
     for (auto &x: elements) {
         delete x;
     }
     //cout << endl << "Elements are deleted. " << endl;
 }
 
-int find_minimum (vector<Node<int>*> elements) {
+int find_minimum (const vector<Node<int>*>& elements) {
     int min = 100;
     for (auto &x: elements)
         if (x->key < min)
@@ -326,7 +327,7 @@ int find_minimum (vector<Node<int>*> elements) {
     return min;
 }
 
-int find_minimum2 (vector<Node<int>*> elements1, vector<Node<int>*> elements2) {
+int find_minimum2 (const vector<Node<int>*>& elements1, const vector<Node<int>*>& elements2) {
     int min1 = find_minimum(elements1);
     int min2 = find_minimum(elements2);
     if (min1 > min2)
@@ -405,7 +406,19 @@ void testUnion2() {
     delete_elements(elements);
 }
 
+void testDecreaseKey() {
+    cout << "Test Decrease Key 1" << endl;
+    auto elements = create_random_elements(15);
+    FibonacciHeap<int> fh;
+    for (auto &x: elements)
+        fh.Insert(x);
 
+    int broj = elements.at(7)->key;
+
+
+
+    delete_elements(elements);
+}
 
 int main() {
     testInsert1();
