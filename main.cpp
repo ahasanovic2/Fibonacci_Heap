@@ -25,12 +25,36 @@ template <typename Type>
 class FibonacciHeap {
     int n;
     Node<Type>* min;
+
+    Node<Type>* findNode(Node<Type>* y, int k) {
+        auto x = y;
+        x->checked = true;
+        Node<Type>* p = nullptr;
+
+        if (x->key == k) {
+            p = x;
+            x->checked = false;
+            return p;
+        }
+        Node<Type>* z;
+        if (x->child != nullptr)
+            z = findNode(x->child, k);
+        if (!x->right->checked)
+            z = findNode(x->right, k);
+
+        if (z)
+            p = z;
+
+        x->checked = false;
+        return p;
+    }
 public:
     FibonacciHeap() {
         n = 0;
         min = nullptr;
     }
-    void Fib_Insert(Node<Type> *x) {
+
+    void Insert(Node<Type> *x) {
         x->degree = 0;
         x->parent = nullptr;
         x->child = nullptr;
@@ -51,7 +75,7 @@ public:
         n++;
     }
 
-    FibonacciHeap Fib_Union(FibonacciHeap<Type> h1, FibonacciHeap<Type> h2) {
+    FibonacciHeap Union(FibonacciHeap<Type> h1, FibonacciHeap<Type> h2) {
         FibonacciHeap<Type> h3 = FibonacciHeap<Type>();
         h3.min = h1.min;
 
@@ -70,7 +94,7 @@ public:
         return h3;
     }
 
-    void Fib_Consolidate() {
+    void Consolidate() {
         int D = log2(n) + 1;
         vector<Node<Type>*> A(D, nullptr);
         Node<Type>* x = min;
@@ -85,7 +109,7 @@ public:
                 }
                 if (y == min)
                     min = x;
-                Fib_HeapLink(y, x);
+                HeapLink(y, x);
                 if (x->right == x)
                     min = x;
                 A.at(d) = nullptr;
@@ -121,7 +145,7 @@ public:
         }
     }
 
-    Node<Type>* Fib_ExtractMin() {
+    Node<Type>* ExtractMin() {
         Node<Type>* z = min;
         if (z != nullptr) {
             Node<Type>* x = z->child;
@@ -149,14 +173,14 @@ public:
                 min = nullptr;
             else {
                 min = z->right;
-                Fib_Consolidate();
+                Consolidate();
             }
             n--;
         }
         return z;
     }
 
-    void Fib_HeapLink(Node<Type>* y, Node<Type>* z) {
+    void HeapLink(Node<Type>* y, Node<Type>* z) {
         y->left->right = y->right;
         y->right->left = y->left;
         if (z->right == z)
@@ -179,7 +203,7 @@ public:
         z->degree++;
     }
 
-    void Fib_Display() {
+    void Display() {
         Node<Type>* p = min;
         if (p == NULL) {
             cout << "Empty heap" << endl;
@@ -195,6 +219,75 @@ public:
             }
         } while (p != min && p->right != NULL);
         cout << endl;
+    }
+
+    void DecreaseKey(Type x, Type k) {
+
+        if (min == nullptr) {
+            cout << "Heap is empty." << endl;
+            return;
+        }
+
+        Node<Type>* found = findNode(min,k);
+
+        if (!found) {
+            cout << "Node is not in heap." << endl;
+            return;
+        }
+
+        if (found->key < k) {
+            cout << "Entered key greater than current key." << endl;
+        }
+
+        found->key = k;
+        auto y = found->parent;
+        if (y != nullptr && found->key < y->key) {
+            Cut(found,y);
+            CascadeCut(y);
+        }
+        if (found->key < min->key)
+            min = found;
+    }
+
+    void Cut(Node<Type>* x, Node<Type>* y) {
+        if (x == x->right)
+            y->child = nullptr;
+        x->left->right = x->right;
+        x->right->left = x->left;
+
+        if (x == y->child)
+            y->child = x->right;
+        y->degree--;
+        x->right = x->left = x;
+        min->left->right = x;
+        x->right = min;
+        x->left = min->left;
+        min->left  = x;
+
+        x->parent = nullptr;
+        x->mark = false;
+    }
+
+    void CascadeCut(Node<Type>* y) {
+        auto z = y->parent;
+        if (z) {
+            if (!y->mark)
+                y->mark = true;
+            else {
+                Cut(y,z);
+                CascadeCut(z);
+            }
+        }
+    }
+
+    void DeleteKey(Type k) {
+        Node<Type>* np = nullptr;
+        DecreaseKey(k, -5000);
+        np = ExtractMin();
+        if (np)
+            cout << "Key deleted" << endl;
+        else
+            cout << "Key not deleted" << endl;
     }
 };
 
@@ -251,9 +344,9 @@ void testInsert1() {
     FibonacciHeap<int> fp;
     auto elements = create_random_elements(n);
     for (auto &x: elements)
-        fp.Fib_Insert(x);
+        fp.Insert(x);
 
-    //fp.Fib_Display();
+    //fp.Display();
     assert(1);
     cout << "Test Insert 1 status: PASSED" << endl;
 
@@ -269,7 +362,7 @@ void testUnion1() {
     FibonacciHeap<int> fp;
     auto elements = create_random_elements(n);
     for (auto &x: elements)
-        fp.Fib_Insert(x);
+        fp.Insert(x);
 
     cout << endl << "Insert number of elements for second heap: ";
     int m;
@@ -277,14 +370,14 @@ void testUnion1() {
     FibonacciHeap<int> fp2;
     auto elements2 = create_random_elements(n);
     for (auto &x: elements2)
-        fp2.Fib_Insert(x);
+        fp2.Insert(x);
 
-    FibonacciHeap<int> fp3 = fp.Fib_Union(fp,fp2);
+    FibonacciHeap<int> fp3 = fp.Union(fp, fp2);
 
-    assert(find_minimum2(elements,elements2) == fp3.Fib_ExtractMin()->key);
+    assert(find_minimum2(elements,elements2) == fp3.ExtractMin()->key);
     cout << endl << "Test Union 1 status: PASSED" << endl;
 
-    //fp3.Fib_Display();
+    //fp3.Display();
 
 
     delete_elements(elements);
@@ -301,16 +394,18 @@ void testUnion2() {
     FibonacciHeap<int> fp;
     auto elements = create_random_elements(n);
     for (auto &x: elements)
-        fp.Fib_Insert(x);
+        fp.Insert(x);
 
     FibonacciHeap<int> fp2;
-    FibonacciHeap<int> fp3 = fp.Fib_Union(fp,fp2);
+    FibonacciHeap<int> fp3 = fp.Union(fp, fp2);
 
-    //fp3.Fib_Display();
-    assert(find_minimum(elements) == fp3.Fib_ExtractMin()->key);
+    //fp3.Display();
+    assert(find_minimum(elements) == fp3.ExtractMin()->key);
     cout << endl << "Test Union 2 status: PASSED" << endl;
     delete_elements(elements);
 }
+
+
 
 int main() {
     testInsert1();
